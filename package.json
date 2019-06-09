@@ -1,0 +1,32 @@
+{
+  "name": "webrtc-simulcast",
+  "version": "1.0.0",
+  "description": "webrtc  simulcast  demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/notedit/webrtc-simulcast.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/notedit/webrtc-simulcast/issues"
+  },
+  "homepage": "https://github.com/notedit/webrtc-simulcast#readme",
+  "dependencies": {
+    "@types/body-parser": "^1.17.0",
+    "@types/cors": "^2.8.5",
+    "@types/express": "^4.17.0",
+    "@types/socket.io": "^2.1.2",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "medooze-media-server": "^0.66.0",
+    "method-override": "^3.0.0",
+    "semantic-sdp": "^3.16.1",
+    "socket.io": "^2.2.0"
+  }
+}

@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+<title> WebRTC Simulcast </title>
+<style type="text/css">
+</style>
+
+<script src="https://cdn.bootcss.com/socket.io/2.1.1/socket.io.js"></script>
+<script type='text/javascript'>
+
+window.localStorage.setItem('debug', '*ERROR*');
+
+const remotestreams = new Map();
+
+function init() {
+    
+    var video_container = document.getElementById('video_container');
+
+    var socket = io();
+    let url = new URL(window.location);
+
+    socket.on('connect', async () => {
+        
+        console.log('socketio connect');
+        const pc = new RTCPeerConnection({
+            bundlePolicy: "max-bundle",
+            rtcpMuxPolicy : "require",
+            sdpSemantics : "unified-plan"
+        });
+
+        const constraints = {
+            video: {width: 1280, height: 720},
+            audio: false
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        playVideo(stream);
+
+        const videoTrack = stream.getVideoTracks()[0];
+
+        const encodings = [
+				{ rid: "a" , active: true, },
+				{ rid: "b" , active: true, scaleResolutionDownBy : 2.0 },
+                { rid: "c" , active: true, scaleResolutionDownBy : 4.0 }
+            ];
+
+        const transceiver = await pc.addTransceiver(videoTrack, {
+            direction	: "sendrecv",
+            streams: [stream],
+            sendEncodings: encodings
+        });
+
+        
+
+        pc.ontrack = (event) => {
+
+            setTimeout(() => {
+
+                const stream = event.streams[0];
+
+                if (remotestreams.get(stream.id)) {
+                    return;
+                }
+
+                remotestreams.set(stream.id,stream);
+
+                playVideo(stream);
+
+            }, 0)
+        }
+
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        console.log('offer', offer.sdp);
+
+        socket.emit('publish', {
+            sdp: offer.sdp
+        }, async (data) => {
+
+            console.log('answer', data.sdp)
+            const answer = new RTCSessionDescription({
+                type: 'answer',
+                sdp: data.sdp
+            })
+            await pc.setRemoteDescription(answer)
+        })
+    })
+    socket.on('disconnect', () => {
+        console.log('socket disconnect')
+    })
+    
+}
+function playVideo(stream) {
+	let element = document.createElement('video');
+	video_container.appendChild(element);
+	element.id = stream.id;
+	element.width = 640;
+    element.height = 480;
+    element.setAttribute('playsinline', true);
+    element.setAttribute('autoplay', true);
+	element.srcObject = stream;
+    element.controls = false;
+    element.muted = true;
+}
+</script>
+</head>
+<body onload="init();">
+    <h1> WebRTC Simulcast</h1>
+
+    
+	<br/>
+	<div id="conference">
+		Video:
+		<br />
+		<div id="video_container">
+        </div>
+    </div>
+
+    <div id="watch_url">
+        
+    </div>
+</body>
+</html>
