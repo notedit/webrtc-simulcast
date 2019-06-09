@@ -30,7 +30,7 @@ function init() {
         });
 
         const constraints = {
-            video: {width: 1280, height: 720},
+            video: {width: 320, height: 180},
             audio: false
         }
 
@@ -40,9 +40,9 @@ function init() {
         const videoTrack = stream.getVideoTracks()[0];
 
         const encodings = [
-				{ rid: "a" , active: true, },
+                { rid: "c" , active: true, scaleResolutionDownBy : 4.0 },
 				{ rid: "b" , active: true, scaleResolutionDownBy : 2.0 },
-                { rid: "c" , active: true, scaleResolutionDownBy : 4.0 }
+				{ rid: "a" , active: true, }
             ];
 
         const transceiver = await pc.addTransceiver(videoTrack, {

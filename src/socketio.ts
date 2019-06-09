@@ -74,7 +74,7 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         const transponder = transponders[0]
 
-        console.dir(transponder.getAvailableLayers())
+       
 
         answer.addStream(outgoingStream.getStreamInfo())
 
@@ -90,7 +90,7 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         transponder.selectEncoding("c");
 			//Select layer
-        transponder.selectLayer(1,1);
+        transponder.selectLayer(0,2);
 
         console.dir(transponder.getSelectedtEncoding());
 
@@ -98,6 +98,9 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         console.dir(transponder.getSelectedTemporalLayerId());
 
+        setInterval(() => {
+            console.dir(transponder.getAvailableLayers())
+        }, 1000)
     })
 
  
