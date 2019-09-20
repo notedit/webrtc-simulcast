@@ -2,7 +2,7 @@ import socketio from 'socket.io'
 
 
 
-const MediaServer = require("medooze-media-server")
+const MediaServer = require("../medooze-media-server")
 
 const SemanticSDP = require('semantic-sdp')
 
@@ -41,14 +41,35 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
     const endpoint = MediaServer.createEndpoint(config.endpoint)
 
+    let transponder:any
     
     socket.on('publish', async (data:any, callback:Function) => {
 
         const sdp = SDPInfo.process(data.sdp)
 
+       
+
         const transport = endpoint.createTransport(sdp)
 
+        transport.setBandwidthProbing(true)
+
         transport.setRemoteProperties(sdp)
+
+        transport.on('targetbitrate', (bitrate) => {
+
+            if (!bitrate) {
+                return;
+            }
+            
+            const used = transponder.setTargetBitrate(300000)
+            const stats = transponder.getAvailableLayers()
+            console.log("targetbitrate " + bitrate + " Encoding " + transponder.getSelectedtEncoding() +" TL:" + transponder.getSelectedTemporalLayerId() + " used "+used);
+            
+        })
+        
+        transport.setBandwidthProbing(true)
+        transport.setMaxProbingBitrate(0)
+
 
         const answer = sdp.answer({
             dtls    : transport.getLocalDTLSInfo(),
@@ -61,26 +82,44 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         const offerStream = sdp.getFirstStream()
 
-        console.dir(offerStream)
-
         const incomingStream = transport.createIncomingStream(offerStream)
 
-        const outgoingStream  = transport.createOutgoingStream({
-            audio: false,
-            video: true
-        })
+        // const outgoingStream  = transport.createOutgoingStream({
+        //     audio: false,
+        //     video: true
+        // })
 
-        const transponders = outgoingStream.attachTo(incomingStream)
+        // const transponders = outgoingStream.attachTo(incomingStream)
 
-        const transponder = transponders[0]
+        // transponder = transponders[0]
 
-       
+        // const outgoingTrack = outgoingStream.getVideoTracks()[0]
 
-        answer.addStream(outgoingStream.getStreamInfo())
+
+        // outgoingTrack.on('remb', (bitrate) => {
+
+        //     console.log('remb')
+
+        //     if (!bitrate) {
+        //         return
+        //     }
+
+        //     const used = transponder.setTargetBitrate(bitrate)
+        //     const stats = transponder.getAvailableLayers()
+        //     transport.setMaxProbingBitrate(stats.layers[0].bitrate)
+
+        //     console.log("remb " + bitrate + " Encoding " + transponder.getSelectedtEncoding() +" TL:" + transponder.getSelectedTemporalLayerId() + " used "+used);
+
+        // })
+
+
+
+        //answer.addStream(outgoingStream.getStreamInfo())
 
         callback({sdp: answer.toString()})
 
 
+        //transponder.selectEncoding('c')
 
 
 
@@ -88,19 +127,19 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
         // spatialLayerId	: 0,
         // temporalLayerId	: 2
 
-        transponder.selectEncoding("c");
+        //transponder.selectEncoding("c");
 			//Select layer
-        transponder.selectLayer(0,2);
+        // transponder.selectLayer(0,2);
 
-        console.dir(transponder.getSelectedtEncoding());
+        // console.dir(transponder.getSelectedtEncoding());
 
-        console.dir(transponder.getSelectedSpatialLayerId());
+        // console.dir(transponder.getSelectedSpatialLayerId());
 
-        console.dir(transponder.getSelectedTemporalLayerId());
+        // console.dir(transponder.getSelectedTemporalLayerId());
 
         setInterval(() => {
-            console.dir(transponder.getAvailableLayers())
-        }, 1000)
+            //console.dir(transponder.getAvailableLayers())
+        }, 5000)
     })
 
  

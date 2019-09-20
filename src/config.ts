@@ -1,5 +1,5 @@
 export default {
-    endpoint: '127.0.0.1',
+    endpoint: '192.168.214.159',
     bandwidth: 500,
     capabilities:  {
         audio : {
@@ -23,10 +23,9 @@ export default {
                 "urn:3gpp:video-orientation",
                 "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
                 "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
-                "urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id",
+                "urn:ietf:params:rtp-hdrext:toffse",
                 "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
-                "urn:ietf:params:rtp-hdrext:sdes:mid",
-                "http://tools.ietf.org/html/draft-ietf-avtext-framemarking-07"
+                "urn:ietf:params:rtp-hdrext:sdes:mid"
             ],
             simulcast : true
         }
