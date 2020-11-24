@@ -31,7 +31,7 @@ function init() {
 
         const constraints = {
             video: {width: 1280, height: 720},
-            audio: false
+            audio: true
         }
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -44,13 +44,29 @@ function init() {
                 { rid: "a"  },
             ];
 
-        const transceiver = await pc.addTransceiver(videoTrack, {
+        const videotransceiver = await pc.addTransceiver("video", {
             direction	: "sendrecv",
             streams: [stream],
-            sendEncodings: encodings
+            //sendEncodings: encodings
         });
 
-        
+
+        await pc.addTransceiver(stream.getAudioTracks()[0], {
+            direction	: "sendrecv",
+            streams: [stream],
+            //sendEncodings: encodings
+        });
+
+
+        setTimeout(()=>{
+            videotransceiver.sender.replaceTrack(videoTrack);
+        },10000);
+
+
+
+        setTimeout(()=>{
+            videotransceiver.sender.replaceTrack(null);
+        },30000);
 
         pc.ontrack = (event) => {
 

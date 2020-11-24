@@ -2,7 +2,7 @@ import socketio from 'socket.io'
 
 
 
-const MediaServer = require("../medooze-media-server")
+const MediaServer = require("medooze-media-server")
 
 const SemanticSDP = require('semantic-sdp')
 
