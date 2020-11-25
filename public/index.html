@@ -13,6 +13,13 @@ window.localStorage.setItem('debug', '*ERROR*');
 
 const remotestreams = new Map();
 
+
+let stream;
+let videoTrack;
+let videotransceiver;
+let sender;
+
+
 function init() {
     
     var video_container = document.getElementById('video_container');
@@ -26,47 +33,55 @@ function init() {
         const pc = new RTCPeerConnection({
             bundlePolicy: "max-bundle",
             rtcpMuxPolicy : "require",
-            sdpSemantics : "unified-plan"
         });
 
         const constraints = {
             video: {width: 1280, height: 720},
             audio: true
         }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         playVideo(stream);
-
-        const videoTrack = stream.getVideoTracks()[0];
+        
+        videoTrack = stream.getVideoTracks()[0];
 
         const encodings = [
                 { rid: "c" , scaleResolutionDownBy : 4.0 },
                 { rid: "a"  },
             ];
 
-        const videotransceiver = await pc.addTransceiver("video", {
-            direction	: "sendrecv",
+        videotransceiver = await pc.addTransceiver(videoTrack, {
+            direction	: "sendonly",
             streams: [stream],
             //sendEncodings: encodings
         });
 
 
         await pc.addTransceiver(stream.getAudioTracks()[0], {
-            direction	: "sendrecv",
+            direction	: "sendonly",
             streams: [stream],
             //sendEncodings: encodings
         });
 
+        // sender = await pc.addTrack(stream.getVideoTracks()[0]);
 
-        setTimeout(()=>{
-            videotransceiver.sender.replaceTrack(videoTrack);
-        },10000);
-
+        // await pc.addTrack(stream.getAudioTracks()[0]);
 
 
-        setTimeout(()=>{
-            videotransceiver.sender.replaceTrack(null);
-        },30000);
+        // setTimeout(()=>{
+        //     sender.replaceTrack(videoTrack);
+        // },10000);
+
+
+
+        // setTimeout(()=>{
+        //     sender.replaceTrack(null);
+        // },20000);
+
+
+        // setTimeout(()=>{
+        //     sender.replaceTrack(videoTrack);
+        // },40000);
 
         pc.ontrack = (event) => {
 
