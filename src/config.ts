@@ -10,7 +10,7 @@ export default {
             ]
         },
         video : {
-            codecs		: ["vp8"],
+            codecs		: ["h264"],
             rtx		: true,
             rtcpfbs		: [
                 { "id": "goog-remb"},

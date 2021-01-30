@@ -1,156 +1,190 @@
 <!doctype html>
 <html>
+
 <head>
-<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-<title> WebRTC Simulcast </title>
-<style type="text/css">
-</style>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+    <title> WebRTC Simulcast </title>
+    <style type="text/css">
+    </style>
 
-<script src="https://cdn.bootcss.com/socket.io/2.1.1/socket.io.js"></script>
-<script type='text/javascript'>
+    <script src="https://cdn.bootcss.com/socket.io/2.1.1/socket.io.js"></script>
+    <script type='text/javascript'>
 
-window.localStorage.setItem('debug', '*ERROR*');
+        window.localStorage.setItem('debug', '*ERROR*');
 
-const remotestreams = new Map();
-
-
-let stream;
-let videoTrack;
-let videotransceiver;
-let sender;
+        const remotestreams = new Map();
 
 
-function init() {
-    
-    var video_container = document.getElementById('video_container');
-
-    var socket = io();
-    let url = new URL(window.location);
-
-    socket.on('connect', async () => {
-        
-        console.log('socketio connect');
-        const pc = new RTCPeerConnection({
-            bundlePolicy: "max-bundle",
-            rtcpMuxPolicy : "require",
-        });
-
-        const constraints = {
-            video: {width: 1280, height: 720},
-            audio: true
-        }
-        
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        playVideo(stream);
-        
-        videoTrack = stream.getVideoTracks()[0];
-
-        const encodings = [
-                { rid: "c" , scaleResolutionDownBy : 4.0 },
-                { rid: "a"  },
-            ];
-
-        videotransceiver = await pc.addTransceiver(videoTrack, {
-            direction	: "sendonly",
-            streams: [stream],
-            //sendEncodings: encodings
-        });
+        let stream;
+        let videoTrack;
+        let videotransceiver;
+        let sender;
 
 
-        await pc.addTransceiver(stream.getAudioTracks()[0], {
-            direction	: "sendonly",
-            streams: [stream],
-            //sendEncodings: encodings
-        });
+        function init() {
 
-        // sender = await pc.addTrack(stream.getVideoTracks()[0]);
+            var video_container = document.getElementById('video_container');
 
-        // await pc.addTrack(stream.getAudioTracks()[0]);
+            var socket = io();
+            let url = new URL(window.location);
 
+            socket.on('connect', async () => {
 
-        // setTimeout(()=>{
-        //     sender.replaceTrack(videoTrack);
-        // },10000);
+                console.log('socketio connect');
+                const pc = new RTCPeerConnection({
+                    bundlePolicy: "max-bundle",
+                    rtcpMuxPolicy: "require",
+                });
 
-
-
-        // setTimeout(()=>{
-        //     sender.replaceTrack(null);
-        // },20000);
-
-
-        // setTimeout(()=>{
-        //     sender.replaceTrack(videoTrack);
-        // },40000);
-
-        pc.ontrack = (event) => {
-
-            setTimeout(() => {
-
-                const stream = event.streams[0];
-
-                if (remotestreams.get(stream.id)) {
-                    return;
+                const constraints = {
+                    video: { width: 1280, height: 720, frameRate: { ideal: 60 } },
+                    audio: false
                 }
 
-                remotestreams.set(stream.id,stream);
-
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
                 playVideo(stream);
 
-            }, 0)
-        }
+                videoTrack = stream.getVideoTracks()[0];
+
+                // const encodings = [
+                //         { rid: "c" , scaleResolutionDownBy : 4.0 },
+                //         { rid: "a"  },
+                //     ];
+
+                // await pc.addTransceiver(videoTrack, {
+                //     direction	: "sendonly",
+                //     streams: [stream],
+                //     sendEncodings: [
+                //         { rid: "a"  }
+                //     ]
+                // });
 
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+                // let clone = videoTrack.clone();
 
-        console.log('offer', offer.sdp);
+                // await pc.addTransceiver(clone, {
+                //     direction	: "sendonly",
+                //     streams: [stream],
+                //     sendEncodings: [
+                //         { rid: "a"  }
+                //     ]
+                // });
 
-        socket.emit('publish', {
-            sdp: offer.sdp
-        }, async (data) => {
 
-            console.log('answer', data.sdp)
-            const answer = new RTCSessionDescription({
-                type: 'answer',
-                sdp: data.sdp
+
+                await pc.addTransceiver(videoTrack, {
+                    direction: "sendrecv",
+                    streams: [stream],
+                });
+
+
+                //pc.addTrack(clone);
+
+                // const params = pc.getSenders()[1].getParameters();
+
+                // // If encodings is null, create it
+
+                // console.dir(params);
+
+                // if (!params.encodings) {
+                //     params.encodings = [{ }];
+                // }
+
+                // params.encodings[0].scaleResolutionDownBy = 4.0;
+                // params.encodings[0].maxBitrate = 200000; // 200kbps
+                // await pc.getSenders()[1].setParameters(params);
+
+
+                //console.dir(pc.getSenders()[1].getParameters());
+
+
+                // setTimeout(()=>{
+                //     sender.replaceTrack(videoTrack);
+                // },10000);
+
+
+
+                // setTimeout(()=>{
+                //     sender.replaceTrack(null);
+                // },20000);
+
+
+                // setTimeout(()=>{
+                //     sender.replaceTrack(videoTrack);
+                // },40000);
+
+                pc.ontrack = (event) => {
+
+                    setTimeout(() => {
+
+                        const stream = event.streams[0];
+
+                        if (remotestreams.get(stream.id)) {
+                            return;
+                        }
+
+                        remotestreams.set(stream.id, stream);
+                        playVideo(stream);
+
+                    }, 0)
+                }
+
+
+
+
+                const offer = await pc.createOffer();
+
+                await pc.setLocalDescription(offer);
+
+                console.log('offer', offer.sdp);
+
+                socket.emit('publish', {
+                    sdp: offer.sdp
+                }, async (data) => {
+
+                    console.log('answer', data.sdp)
+                    const answer = new RTCSessionDescription({
+                        type: 'answer',
+                        sdp: data.sdp
+                    })
+                    await pc.setRemoteDescription(answer)
+                })
             })
-            await pc.setRemoteDescription(answer)
-        })
-    })
-    socket.on('disconnect', () => {
-        console.log('socket disconnect')
-    })
-    
-}
-function playVideo(stream) {
-	let element = document.createElement('video');
-	video_container.appendChild(element);
-	element.id = stream.id;
-	element.width = 640;
-    element.height = 480;
-    element.setAttribute('playsinline', true);
-    element.setAttribute('autoplay', true);
-	element.srcObject = stream;
-    element.controls = false;
-    element.muted = true;
-}
-</script>
+            socket.on('disconnect', () => {
+                console.log('socket disconnect')
+            })
+
+        }
+        function playVideo(stream) {
+            let element = document.createElement('video');
+            video_container.appendChild(element);
+            element.id = stream.id;
+            element.width = 640;
+            element.height = 480;
+            element.setAttribute('playsinline', true);
+            element.setAttribute('autoplay', true);
+            element.srcObject = stream;
+            element.controls = false;
+            element.muted = true;
+        }
+    </script>
 </head>
+
 <body onload="init();">
     <h1> WebRTC Simulcast</h1>
 
-    
-	<br/>
-	<div id="conference">
-		Video:
-		<br />
-		<div id="video_container">
+
+    <br />
+    <div id="conference">
+        Video:
+        <br />
+        <div id="video_container">
         </div>
     </div>
 
     <div id="watch_url">
-        
+
     </div>
 </body>
+
 </html>

@@ -51,7 +51,7 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         const transport = endpoint.createTransport(sdp)
 
-        transport.setBandwidthProbing(true)
+        //transport.setBandwidthProbing(true)
 
         transport.setRemoteProperties(sdp)
 
@@ -61,14 +61,14 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
                 return;
             }
             
-            const used = transponder.setTargetBitrate(300000)
-            const stats = transponder.getAvailableLayers()
-            console.log("targetbitrate " + bitrate + " Encoding " + transponder.getSelectedtEncoding() +" TL:" + transponder.getSelectedTemporalLayerId() + " used "+used);
+            //const used = transponder.setTargetBitrate(300000)
+            //const stats = transponder.getAvailableLayers()
+            //console.log("targetbitrate " + bitrate + " Encoding " + transponder.getSelectedtEncoding() +" TL:" + transponder.getSelectedTemporalLayerId() + " used "+used);
             
         })
         
-        transport.setBandwidthProbing(true)
-        transport.setMaxProbingBitrate(0)
+        //transport.setBandwidthProbing(true)
+        //transport.setMaxProbingBitrate(0)
 
 
         const answer = sdp.answer({
@@ -84,12 +84,12 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         const incomingStream = transport.createIncomingStream(offerStream)
 
-        // const outgoingStream  = transport.createOutgoingStream({
-        //     audio: false,
-        //     video: true
-        // })
+        const outgoingStream  = transport.createOutgoingStream({
+            audio: false,
+            video: true
+        })
 
-        // const transponders = outgoingStream.attachTo(incomingStream)
+        const transponders = outgoingStream.attachTo(incomingStream)
 
         // transponder = transponders[0]
 
@@ -114,7 +114,7 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
 
 
-        //answer.addStream(outgoingStream.getStreamInfo())
+        answer.addStream(outgoingStream.getStreamInfo())
 
         callback({sdp: answer.toString()})
 
@@ -137,9 +137,6 @@ socketioServer.on('connection', async (socket: SocketIO.Socket) => {
 
         // console.dir(transponder.getSelectedTemporalLayerId());
 
-        setInterval(() => {
-            //console.dir(transponder.getAvailableLayers())
-        }, 5000)
     })
 
  
